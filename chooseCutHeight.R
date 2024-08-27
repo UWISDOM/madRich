@@ -128,7 +128,8 @@ chooseCutHeight <- function(
                   axis.ticks.x = ggplot2::element_blank()) +
     
     ggplot2::geom_vline(xintercept = k_opt, color = "red") +
-    ggplot2::ggtitle("optimal: k = 22")
+    ggplot2::ggtitle(paste0("optimal: k = ", k_opt))
+
   
   clust_df3 <- clust_df %>% 
     dplyr::left_join(
