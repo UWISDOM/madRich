@@ -8,7 +8,7 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: Madison
+  - given-names: Madison Shay
     family-names: Cox
     email: mscox@uw.edu
     affiliation: University of Washington
