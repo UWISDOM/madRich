@@ -1,22 +1,29 @@
-# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, FDR values must be included as "FDR".
+# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+# enrich_method: "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
 # category: a vector of Broad gene set categories included among the pathway names in df
 # subcategory: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
 # db: optional, custom gene set database formatted like MSigDB
 # ID: "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
 # species: "human" or "mouse" for msigDB
 # hclust_height: Height for cutting tree for hclust. Value must be between 0 and 1
-# fdr_cutoff: optional, filter to apply to df before clustering
+# fdr_cutoff: optional, high-end filter to apply to df before clustering
+# abs_NES_cutoff: optional, low-end. absolute value filter to apply to df before clustering of GSEA results
+# kK_cutoff: optional, low-end filter to apply to df before clustering of hypergeometric results
+# group_name: optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
 
 clusterSets <- function(
     df = NULL,
+    enrich_method = "hypergeometric",
     category = NULL,
     subcategory = NULL,
     db = NULL,
     ID = "SYMBOL",
     species = "human",
     hclust_height = 0.7,
-    fdr_cutoff = NULL
-
+    fdr_cutoff = NULL,
+    abs_NES_cutoff = NULL, 
+    kK_cutoff = NULL,
+    group_name = NULL
 ){
   db_list <- database <- db_format <- subcat <- NULL
   
@@ -28,10 +35,37 @@ clusterSets <- function(
     df <- df %>% 
       dplyr::filter(FDR < fdr_cutoff)
   }
+  if(!is.null(abs_NES_cutoff)){
+    if(enrich_method != "gsea"){
+      stop("NES filtering is only available with the 'gsea' method.")
+      }
+    df <- df %>% 
+      dplyr::filter(abs(NES) > abs_NES_cutoff)
+  }
+  if(!is.null(kK_cutoff)){
+    if(enrich_method != "hypergeometric"){
+      stop("k/K filtering is only available with the 'hypergeometric' method.")
+      }
+    df <- df %>% 
+      dplyr::filter(`k/K` > kK_cutoff)
+  }
+  if(!is.null(group_name)){
+    df <- df%>% 
+      dplyr::filter(group == group_name)
+  }
   
+  #check filtering
+  if(length(unique(df$pathway)) == 0){stop("Looks like your enrichment result is empty after filtering. Adjust settings.")}
+    
   ### get gene set matrix ###
-  pathways <- unique(df$pathway)
-  
+  pw_list <- list()
+  if(enrich_method == "hypergeometric") {
+    pw_list[["pathways"]] <- unique(df$pathway)
+  } else if(enrich_method == "gsea"){
+    pw_list[["positive"]] <- unique(df$pathway[which(df$NES > 0)])
+    pw_list[["negative"]] <- unique(df$pathway[which(df$NES < 0)])
+  } else{stop("Options for enrichment method are 'hypergeometric' and 'gsea'.")}
+ 
   if(is.null(db)){
     db_list <- list()
     for(cat in category){
@@ -49,15 +83,24 @@ clusterSets <- function(
           dplyr::filter(gs_subcat_format == subcategory[[cat]])
       }
       
-      
-      database <- database %>% 
-        dplyr::filter(gs_name %in% pathways) # remove pathways not in enrichment result
-      db_list[[cat]] <- database
+      if(length(pw_list) > 1){# remove pathways not in enrichment result
+        db_pos <- database %>% 
+          dplyr::filter(gs_name %in% pw_list[["positive"]])%>% 
+          dplyr::mutate(sign = "positive")
+        db_neg <- database %>% 
+          dplyr::filter(gs_name %in% pw_list[["negative"]])%>% 
+          dplyr::mutate(sign = "negative")
+        db_temp <- dplyr::bind_rows(db_pos, db_neg)
+      } else if(length(pw_list) == 1){
+        db_temp <- database %>% 
+          dplyr::filter(gs_name %in% pw_list[["pathways"]]) %>% 
+          dplyr::mutate(sign = "pathways")
+      } else{stop()}
+      db_list[[cat]] <- db_temp
     }
     
     db_format <- dplyr::bind_rows(db_list)
-    db_format$pathway <- db_format$gs_name
-    
+   
     if(ID == "SYMBOL") {
       db_format$gene <- db_format$gene_symbol
     } else if(ID == "ENSEMBL"){
@@ -66,49 +109,112 @@ clusterSets <- function(
       db_format$gene <- db_format$entrez_gene
     } else{stop("ID error")}
     
-  } else{
-    db_format <- db
+  } else{ # if database is provided
+    if(length(pw_list) > 1){# remove pathways not in enrichment result
+      db_pos <- db %>% 
+        dplyr::filter(gs_name %in% pw_list[["positive"]])%>% 
+        dplyr::mutate(sign = "positive")
+      db_neg <- db %>% 
+        dplyr::filter(gs_name %in% pw_list[["negative"]])%>% 
+        dplyr::mutate(sign = "negative")
+      db_temp <- dplyr::bind_rows(db_pos, db_neg)
+    } else if(length(pw_list) == 1){
+      db_temp <- db %>% 
+        dplyr::filter(gs_name %in% pw_list[["pathways"]]) %>% 
+        dplyr::mutate(sign = "pathways")
+    } else{stop()}
+    db_format <- db_temp
   }
   
+  
+  db_format$pathway <- db_format$gs_name
   db_format <- db_format %>% 
-    dplyr::select(c("pathway", "gene", "gs_description")) %>% 
+    dplyr::select(c("sign", "pathway", "gene", "gs_description")) %>% 
     dplyr::distinct()
+  final[["datbase_format"]] <- db_format
   
   
   ### make distance matrix ###
-  dbl <- with(db_format, base::split(gene, pathway)) # convert pathway database to named list
-  olm <- matrix(ncol = length(dbl), nrow = length(dbl)) # make nset x nset matrix
-  colnames(olm) <- names(dbl)
-  rownames(olm) <- names(dbl)
-  
-  for(i in names(dbl)){
-    for(j in names(dbl)){
-      if(i == j){
-        v <- 1 # self gets 1
+  cluster_list <- list()
+  if(length(unique(db_format$sign)) > 1){
+    for(s in unique(db_format$sign)){
+      db_temp <- db_format %>% 
+        dplyr::filter(sign == s)
+      dbl <- with(db_temp, base::split(gene, pathway)) # convert pathway database to named list
+      olm <- matrix(ncol = length(dbl), nrow = length(dbl)) # make nset x nset matrix
+      colnames(olm) <- names(dbl)
+      rownames(olm) <- names(dbl)
+      for(i in names(dbl)){
+        for(j in names(dbl)){
+          if(i == j){
+            v <- 1 # self gets 1
+          }
+          else{
+            v <- length(base::intersect(dbl[[i]], dbl[[j]])) / min(c(length(dbl[[i]]), length(dbl[[j]]))) # calculate overlap coefficient
+          }
+          olm[i,j] <- v
+        }
       }
+      
+      olmd <- 1-olm # convert similarity matrix to distance matrix
+      
+      ### make clusters ###
+      cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
+      
+      if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
       else{
-        v <- length(base::intersect(dbl[[i]], dbl[[j]])) / min(c(length(dbl[[i]]), length(dbl[[j]]))) # calculate overlap coefficient
+        cl_cut <- stats::cutree(cl, h = hclust_height)
+        cl_cut_df <- data.frame(cluster = as.factor(cl_cut))
+        cl_cut_df$pathway <- names(cl_cut)
+        rownames(cl_cut_df) <- NULL
       }
-      olm[i,j] <- v
+      
+      cl_cut_df$sign <- s
+      cluster_list[[s]] <- cl_cut_df
+      final[[paste0(s,"_dist_mat")]] <- olmd
+
     }
-  }
-  
-  olmd <- 1-olm # convert similarity matrix to distance matrix
-
-    ### make clusters ###
-  cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
-  
-  if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
-  else{
-    cl_cut <- stats::cutree(cl, h = hclust_height)
-    cl_cut_df <- data.frame(cluster = as.factor(cl_cut))
-    cl_cut_df$pathway <- names(cl_cut)
-    rownames(cl_cut_df) <- NULL
-  }
+    cl_df_join <- bind_rows(cluster_list)
+    final[["cluster_membership"]] <- cl_df_join
     
+  } else{
+    db_temp <- db_format
+    dbl <- with(db_temp, base::split(gene, pathway)) # convert pathway database to named list
+    olm <- matrix(ncol = length(dbl), nrow = length(dbl)) # make nset x nset matrix
+    colnames(olm) <- names(dbl)
+    rownames(olm) <- names(dbl)
+    
+    for(i in names(dbl)){
+      for(j in names(dbl)){
+        if(i == j){
+          v <- 1 # self gets 1
+        }
+        else{
+          v <- length(base::intersect(dbl[[i]], dbl[[j]])) / min(c(length(dbl[[i]]), length(dbl[[j]]))) # calculate overlap coefficient
+        }
+        olm[i,j] <- v
+      }
+    }
+    
+    olmd <- 1-olm # convert similarity matrix to distance matrix
+    
+    ### make clusters ###
+    cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
+    
+    if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
+    else{
+      cl_cut <- stats::cutree(cl, h = hclust_height)
+      cl_cut_df <- data.frame(cluster = as.factor(cl_cut))
+      cl_cut_df$pathway <- names(cl_cut)
+      rownames(cl_cut_df) <- NULL
+    }
+    final[["dist_mat"]] <- olmd
+    final[["cluster_membership"]] <- cl_cut_df
+  }
 
-  final[["dist_mat"]] <- olmd
-  final[["cluster_membership"]] <- cl_cut_df
-  final[["datbase_format"]] <- db_format
+  
+  
+
+
   return(final)
 }
