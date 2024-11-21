@@ -1,12 +1,28 @@
-#cluster_result: the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
-#rmwords: a vector of words to remove from wordclouds. a standard list of words is included (articles, common broad category names, etc), but if your results have unexpected emphasis of useless words, you can add more here. 
-
+#' Create word cloud plots to help in annotation of gene set clusters
+#'
+#' @param cluster_result the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
+#' @param rmwords a vector of words to remove from wordclouds. a standard list of words is included (articles, common broad category names, etc), but if your results have unexpected emphasis of useless words, you can add more here. 
+#'
+#' @return a list of ggplot objects
+#' @export
+#'
+#' @examples
+#' res <- clusterSets(df = dat,
+#'                    category = c("H", "C2", "C5"),
+#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    hclust_height = 0.9,
+#'                    enrich_method = "gsea",
+#'                    group_name = "g1")
+#' clusterWordclouds(res, rmwords = c("defense", "immune"))
 
 clusterWordclouds <- function(
     cluster_result = NULL,
     rmwords = NULL
 ){
   
+  #NOTE: a lot of this was adapted from vissE package (https://www.bioconductor.org/packages/release/bioc/html/vissE.html)
+  
+  . <- pathway <- gs_description <- cluster <- wd <- angle <- NULL
   set.seed(432143)
   plotlist <- list()
   
@@ -113,8 +129,8 @@ clusterWordclouds <- function(
           pathway = stringr::str_replace_all(pathway, "/", " "),
           pathway = stringr::str_replace_all(pathway, ":", " "),
           pathway = stringr::str_replace_all(pathway, ",", ""),
-          pathway = stringr::str_replace_all(pathway, fixed("["), " "),
-          pathway = stringr::str_replace_all(pathway, fixed("]"), " "),
+          pathway = stringr::str_replace_all(pathway, stringr::fixed("["), " "),
+          pathway = stringr::str_replace_all(pathway, stringr::fixed("]"), " "),
           pathway = stringr::str_replace_all(pathway, "[^[:alnum:]]", " "),
           gs_description = stringr::str_replace(gs_description, " \\s*\\[[^\\)]+\\]", ""),
           gs_description = tolower(gs_description),             
@@ -122,10 +138,10 @@ clusterWordclouds <- function(
           gs_description = stringr::str_replace_all(gs_description, "/", " "),
           gs_description = stringr::str_replace_all(gs_description, ":", " "),
           gs_description = stringr::str_replace_all(gs_description, ",", ""),
-          gs_description = stringr::str_replace_all(gs_description, fixed("["), " "),
-          gs_description = stringr::str_replace_all(gs_description, fixed("]"), " "),
+          gs_description = stringr::str_replace_all(gs_description, stringr::fixed("["), " "),
+          gs_description = stringr::str_replace_all(gs_description, stringr::fixed("]"), " "),
           gs_description = stringr::str_replace_all(gs_description, "[^[:alnum:]]", " "),
-          gs_description = stringr::str_replace_all(gs_description, fixed("."), "")
+          gs_description = stringr::str_replace_all(gs_description, stringr::fixed("."), "")
         )
       
       for(j in c("names", "descriptions", "both")){ # get counts of word freq
@@ -212,7 +228,7 @@ clusterWordclouds <- function(
       cl_df <- cluster_result$cluster_membership %>% 
         dplyr::filter(sign == s)
       df <- cluster_result$input_df %>% 
-        filter(pathway %in% cl_df$pathway)
+        dplyr::filter(pathway %in% cl_df$pathway)
       
       df2 <- df %>%
         dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct()) %>%  # grab gene set 
@@ -240,8 +256,8 @@ clusterWordclouds <- function(
             pathway = stringr::str_replace_all(pathway, "/", " "),
             pathway = stringr::str_replace_all(pathway, ":", " "),
             pathway = stringr::str_replace_all(pathway, ",", ""),
-            pathway = stringr::str_replace_all(pathway, fixed("["), " "),
-            pathway = stringr::str_replace_all(pathway, fixed("]"), " "),
+            pathway = stringr::str_replace_all(pathway, stringr::fixed("["), " "),
+            pathway = stringr::str_replace_all(pathway, stringr::fixed("]"), " "),
             pathway = stringr::str_replace_all(pathway, "[^[:alnum:]]", " "),
             gs_description = stringr::str_replace(gs_description, " \\s*\\[[^\\)]+\\]", ""),
             gs_description = tolower(gs_description),             
@@ -249,10 +265,10 @@ clusterWordclouds <- function(
             gs_description = stringr::str_replace_all(gs_description, "/", " "),
             gs_description = stringr::str_replace_all(gs_description, ":", " "),
             gs_description = stringr::str_replace_all(gs_description, ",", ""),
-            gs_description = stringr::str_replace_all(gs_description, fixed("["), " "),
-            gs_description = stringr::str_replace_all(gs_description, fixed("]"), " "),
+            gs_description = stringr::str_replace_all(gs_description, stringr::fixed("["), " "),
+            gs_description = stringr::str_replace_all(gs_description, stringr::fixed("]"), " "),
             gs_description = stringr::str_replace_all(gs_description, "[^[:alnum:]]", " "),
-            gs_description = stringr::str_replace_all(gs_description, fixed("."), "")
+            gs_description = stringr::str_replace_all(gs_description, stringr::fixed("."), "")
           )
         
         for(j in c("names", "descriptions", "both")){ # get counts of word freq

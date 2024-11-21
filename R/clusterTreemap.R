@@ -1,13 +1,25 @@
-#NOTE: a lot of this was taken directly from vissE package (https://www.bioconductor.org/packages/release/bioc/html/vissE.html)
-
-#cluster_result: the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
-#scores: How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
+#' Create treemap plot(s) of clustered enrichment result
+#'
+#' @param cluster_result the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
+#' @param scores How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
+#'
+#' @return a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplot objects (for two-part like GSEA)
+#' @export
+#'
+#' @examples
+#' res <- clusterSets(df = dat,
+#'                    category = c("H", "C2", "C5"),
+#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    hclust_height = 0.9,
+#'                    enrich_method = "hypergeometric")
+#' clusterTreemap(res)
 
 clusterTreemap <- function(
     cluster_result = NULL,
     scores = "pvalue"
 ){
   
+  . <- cluster <- pathway <- pathway_format <- score <- NULL
   set.seed(432143)
   
   # hypergeometric - one plot
@@ -30,13 +42,13 @@ clusterTreemap <- function(
       dplyr::filter(!is.na(cluster)) %>%
       dplyr::mutate(
         pathway_format = tolower(pathway),
-        pathway_format = str_replace_all(pathway_format, "_", " "),
-        pathway_format = str_replace_all(pathway_format, "-", " "),
-        pathway_format = str_replace_all(pathway_format, "/", " "),
-        pathway_format = str_replace_all(pathway_format, ":", " "),
-        pathway_format = str_replace_all(pathway_format, ",", ""),
-        pathway_format = str_replace_all(pathway_format, fixed("["), " "),
-        pathway_format = str_replace_all(pathway_format, fixed("]"), " ")) 
+        pathway_format = stringr::str_replace_all(pathway_format, "_", " "),
+        pathway_format = stringr::str_replace_all(pathway_format, "-", " "),
+        pathway_format = stringr::str_replace_all(pathway_format, "/", " "),
+        pathway_format = stringr::str_replace_all(pathway_format, ":", " "),
+        pathway_format = stringr::str_replace_all(pathway_format, ",", ""),
+        pathway_format = stringr::str_replace_all(pathway_format, stringr::fixed("["), " "),
+        pathway_format = stringr::str_replace_all(pathway_format, stringr::fixed("]"), " ")) 
     
     
     p <- ggplot2::ggplot(df, ggplot2::aes(area = score, fill = as.factor(cluster),
@@ -78,15 +90,18 @@ clusterTreemap <- function(
         dplyr::filter(!is.na(cluster)) %>%
         dplyr::mutate(
           pathway_format = tolower(pathway),
-          pathway_format = str_replace_all(pathway_format, "_", " "),
-          pathway_format = str_replace_all(pathway_format, "-", " "),
-          pathway_format = str_replace_all(pathway_format, "/", " "),
-          pathway_format = str_replace_all(pathway_format, ":", " "),
-          pathway_format = str_replace_all(pathway_format, ",", ""),
-          pathway_format = str_replace_all(pathway_format, fixed("["), " "),
-          pathway_format = str_replace_all(pathway_format, fixed("]"), " ")) 
+          pathway_format = stringr::str_replace_all(pathway_format, "_", " "),
+          pathway_format = stringr::str_replace_all(pathway_format, "-", " "),
+          pathway_format = stringr::str_replace_all(pathway_format, "/", " "),
+          pathway_format = stringr::str_replace_all(pathway_format, ":", " "),
+          pathway_format = stringr::str_replace_all(pathway_format, ",", ""),
+          pathway_format = stringr::str_replace_all(pathway_format, stringr::fixed("["), " "),
+          pathway_format = stringr::str_replace_all(pathway_format, stringr::fixed("]"), " ")) 
       
       figlist[[s]] <- local({
+        
+        . <- pathway_format <- cluster <- score <- pathway <- NULL
+          
         df <- df
         s <- s
         ggplot2::ggplot(df, ggplot2::aes(area = score, fill = as.factor(cluster),

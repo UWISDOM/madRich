@@ -1,14 +1,28 @@
-# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
-# enrich_method: "hypergeometric" or "gsea." Serves as a sanity check for df filtering, 
-# category: a vector of Broad gene set categories included among the pathway names in df
-# subcategory: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
-# db: optional, custom gene set database formatted like MSigDB
-# ID: "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
-# species: "human" or "mouse" for msigDB
-# hclust_heights: vector of heights to test  for cuttree. Values must be between 0 and 1
-# kmax: max number of clusters to assess for silhouette plot
-# fdr_cutoff: optional, filter to apply to df before testing clustering solutions
-# group_name: optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
+#' Plots to help guide choice of cut height for heirarchical clustering of gene sets
+#'
+#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+#' @param enrich_method "hypergeometric" or "gsea." Serves as a sanity check for df filtering
+#' @param category a vector of Broad gene set categories included among the pathway names in df
+#' @param subcategory a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+#' @param db optional, custom gene set database formatted like MSigDB
+#' @param ID "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
+#' @param species "human" or "mouse" for msigDB
+#' @param hclust_heights vector of heights to test  for cuttree. Values must be between 0 and 1
+#' @param kmax  max number of clusters to assess for silhouette plot
+#' @param fdr_cutoff optional, FDR filter to apply to df before testing clustering solutions
+#' @param abs_NES_cutoff optional, NES filter to apply to df before testing clustering solutions
+#' @param kK_cutoff optional, k/K ratio filter to apply to df before testing clustering solutions
+#' @param group_name optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
+#'
+#' @return a list containing a plot(s) of silhouette scores by number of clusters, a summary dataframe, and a suggested "optimal" cut height
+#' @export
+#'
+#' @examples
+#' chooseCutHeight(df = dat,
+#'                 category = c("H", "C2", "C5"),
+#'                 subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                 hclust_heights = c(0.1,0.3,0.5,0.7,0.9),
+#'                 group = "g1")
 
 chooseCutHeight <- function(
     df = NULL,
@@ -26,7 +40,7 @@ chooseCutHeight <- function(
     group_name = NULL
     
 ){
-  db_list <- database <- db_format <- subcat <- kmax_holder <- NULL
+. <- clusters <- cut_height <- y <- k_at_height <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- kmax_holder <- NULL
   
   if(enrich_method == "gsea"){
     print("Note: when using for GSEA, this function will generate silhouette scores for all pass-filter gene sets separated by sign of NES. The 'best' solution will be the lower cut height of the two (err on the side of more clusters.")
@@ -188,7 +202,7 @@ chooseCutHeight <- function(
         kmax <- nrow(olm)-1
       }
 
-      silhouette_score <- factoextra::fviz_nbclust(x = olm, diss = as.dist(olmd), FUN = factoextra::hcut, method = "silhouette", k.max=kmax)
+      silhouette_score <- factoextra::fviz_nbclust(x = olm, diss = stats::as.dist(olmd), FUN = factoextra::hcut, method = "silhouette", k.max=kmax)
       k_opt <- silhouette_score$data$clusters[which(silhouette_score$data$y == max(silhouette_score$data$y))]
       clust_df2 <- clust_df
       clust_df2[["y"]] <- (max(silhouette_score$data$y) - min(silhouette_score$data$y)) / 4
@@ -221,7 +235,7 @@ chooseCutHeight <- function(
 
     } 
     plot <- patchwork::wrap_plots(plotlist, ncol = 1)
-    clust_df3 <- bind_rows(dflist)
+    clust_df3 <- dplyr::bind_rows(dflist)
   
     
     } else{
@@ -264,7 +278,7 @@ chooseCutHeight <- function(
     kmax <- nrow(olm)-1
   }
   
-  silhouette_score <- factoextra::fviz_nbclust(x = olm, diss = as.dist(olmd), FUN = factoextra::hcut, method = "silhouette", k.max=kmax)
+  silhouette_score <- factoextra::fviz_nbclust(x = olm, diss = stats::as.dist(olmd), FUN = factoextra::hcut, method = "silhouette", k.max=kmax)
   k_opt <- silhouette_score$data$clusters[which(silhouette_score$data$y == max(silhouette_score$data$y))]
   
   clust_df2 <- clust_df

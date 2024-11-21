@@ -11,6 +11,32 @@
 # kK_cutoff: optional, low-end filter to apply to df before clustering of hypergeometric results
 # group_name: optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
 
+#' Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
+#'
+#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+#' @param enrich_method "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
+#' @param category a vector of Broad gene set categories included among the pathway names in df
+#' @param subcategory a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+#' @param db optional, custom gene set database formatted like MSigDB
+#' @param ID "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
+#' @param species "human" or "mouse" for msigDB
+#' @param hclust_height Height for cutting tree for hclust. Value must be between 0 and 1
+#' @param fdr_cutoff optional, high-end filter to apply to df before clustering
+#' @param abs_NES_cutoff optional, low-end. absolute value filter to apply to df before clustering of GSEA results
+#' @param kK_cutoff optional, low-end filter to apply to df before clustering of hypergeometric results
+#' @param group_name optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
+#'
+#' @return a list containing the input data frame, formatted reference database, cluster membership, and distance matrix/matrices. To be used in downstream visualizations.
+#' @export
+#'
+#' @examples
+#' res <- clusterSets(df = dat,
+#'                    category = c("H", "C2", "C5"),
+#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    hclust_height = 0.5,
+#'                    enrich_method = "gsea",
+#'                    group_name = "g1")
+
 clusterSets <- function(
     df = NULL,
     enrich_method = "hypergeometric",
@@ -25,7 +51,7 @@ clusterSets <- function(
     kK_cutoff = NULL,
     group_name = NULL
 ){
-  db_list <- database <- db_format <- subcat <- NULL
+  . <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
   
   final <- list()
   final[["input_df"]] <- df
@@ -174,7 +200,7 @@ clusterSets <- function(
       final[[paste0(s,"_dist_mat")]] <- olmd
 
     }
-    cl_df_join <- bind_rows(cluster_list)
+    cl_df_join <- dplyr::bind_rows(cluster_list)
     final[["cluster_membership"]] <- cl_df_join
     
   } else{

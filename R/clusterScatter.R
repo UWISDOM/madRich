@@ -1,7 +1,19 @@
-#cluster_result: the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
-#dimred: dimension reduction method. Options are "UMAP", "tSNE", or "PCoA".
-#scores: How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
-
+#' Create scatterplot of clustered gene set result
+#'
+#' @param cluster_result the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
+#' @param dimred dimension reduction method. Options are "UMAP", "tSNE", or "PCoA".
+#' @param scores How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
+#'
+#' @return a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplot objects (for two-part like GSEA)
+#' @export
+#'
+#' @examples
+#' res <- clusterSets(df = dat,
+#'                    category = c("H", "C2", "C5"),
+#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    hclust_height = 0.9,
+#'                    enrich_method = "hypergeometric")
+#' clusterScatter(res, dimred = "UMAP", scores = "size")
 
 clusterScatter <- function(
     cluster_result = NULL,
@@ -9,7 +21,7 @@ clusterScatter <- function(
     scores = "pvalue"
 ){
   
-  plot_df <- df <- scr_str <- cl_df <- olmd <- NULL
+  . <- plot_df <- df <- scr_str <- cl_df <- olmd <- score <- pathway <- labs <- V1 <- V2 <- labs <- cluster <- NULL
   
   
   set.seed(432143)
@@ -74,6 +86,7 @@ clusterScatter <- function(
                     labs = stringr::str_wrap(labs, width = 25)) 
     
     plot <- local({
+      . <- score <- pathway <- labs <- V1 <- V2 <- labs <- cluster <- NULL
       plot_df <- plot_df
       xlab <- xlab
       ylab <- ylab
@@ -92,7 +105,7 @@ clusterScatter <- function(
         ggplot2::xlab(xlab) + 
         ggplot2::ylab(ylab) + 
         ggplot2::labs(size = scr_str, color = "Cluster", fill = "Cluster")+
-        scale_size_continuous(range = c(1, 10))
+        ggplot2::scale_size_continuous(range = c(1, 10))
     })
     
     
@@ -150,6 +163,7 @@ clusterScatter <- function(
                       labs = stringr::str_wrap(labs, width = 25)) 
       
       figlist[[s]] <- local({
+        . <- score <- pathway <- labs <- V1 <- V2 <- labs <- cluster <- NULL
         plot_df <- plot_df
         s <- s
         xlab <- xlab
@@ -168,8 +182,8 @@ clusterScatter <- function(
           ggplot2::xlab(xlab) + 
           ggplot2::ylab(ylab) + 
           ggplot2::labs(size = scr_str, color = "Cluster", fill = "Cluster")+
-          scale_size_continuous(range = c(1, 10)) + 
-          ggtitle(s)
+          ggplot2::scale_size_continuous(range = c(1, 10)) + 
+          ggplot2::ggtitle(s)
       })
       
     }

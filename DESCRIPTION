@@ -1,0 +1,31 @@
+Package: madRich
+Title: madRich: Clustering and Visualization of Complex Enrichment Results
+Version: 1.0.0
+Authors@R: 
+    person("Madison", "Cox", , "mscox@uw.edu", role = c("aut", "cre"))
+Description: Provides tools for clustering and summarizing hypergeometric or GSEA pathway enrichment results. Provides silhouette score plots to guide hierarchical clustering, clusters gene sets based on the overlap coefficient, and visualizes the clustering result as a scatterplot, dendrogram, or treemap plot. Also helps with annotating clusters with word cloud plots based on concatenated gene set names, descriptions, or both. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 2.10)
+LazyData: true
+Imports: 
+    magrittr,
+    dplyr,
+    Rtsne,
+    factoextra,
+    ggdendro,
+    ggplot2,
+    ggrepel,
+    ggwordcloud,
+    msigdbr,
+    patchwork,
+    scales,
+    scico,
+    stringr,
+    tibble,
+    tidyr,
+    treemapify,
+    umap

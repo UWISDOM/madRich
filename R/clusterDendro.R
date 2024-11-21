@@ -1,9 +1,23 @@
-#cluster_result: the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
+#' Plot dendrogram of clustered gene sets
+#'
+#' @param cluster_result output from clusterSets()
+#'
+#' @return a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplot objects (for two-part like GSEA)
+#' @export
+#'
+#' @examples
+#' res <- clusterSets(df = dat,
+#'                    category = c("H", "C2", "C5"),
+#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    hclust_height = 0.9,
+#'                    enrich_method = "gsea",
+#'                    group_name = "g1")
+#' clusterDendro(res)
 
 clusterDendro <- function(
     cluster_result = NULL
 ){
-  
+  . <- pathway <- label <- cluster <- x <- xend <- y <- yend <- NULL
   set.seed(432143)
   
   if(is.null(cluster_result$cluster_membership$sign)){
@@ -19,7 +33,7 @@ clusterDendro <- function(
   dhc <- stats::as.dendrogram(cl)
 
   jdf <- cluster_result$cluster_membership %>% 
-    mutate(label = stringr::str_replace_all(pathway, "_", " "),
+    dplyr::mutate(label = stringr::str_replace_all(pathway, "_", " "),
            label = tolower(label),
            cluster = factor(cluster, levels = c(1:length(unique(cluster_result$cluster_membership$cluster)))))
   
@@ -29,28 +43,28 @@ clusterDendro <- function(
     dplyr::mutate(label = stringr::str_replace_all(label, "_", " "),
                   label = tolower(label))
 
-  label_data <- dplyr::bind_cols(filter(ggdendro::segment(ddata), x == xend & x%%1 == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
+  label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
 
   dgdata <- ggdendro::segment(ddata) %>% 
-    left_join(select(label_data, c(x, cluster))) %>% 
-    mutate(lwd = NA)
+    dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+    dplyr::mutate(lwd = NA)
   
     for(i in unique(jdf$cluster)){
       max <- max(dgdata$x[which(dgdata$cluster == i)])
       min <- min(dgdata$x[which(dgdata$cluster == i)])
       dgdata <- dgdata %>% 
-        mutate(cluster = ifelse(x < max & x > min & xend < max & xend > min, i, cluster))
+        dplyr::mutate(cluster = ifelse(x < max & x > min & xend < max & xend > min, i, cluster))
     }
 
   dgdata <- dgdata %>% 
-    mutate(
+    dplyr::mutate(
       cluster = factor(cluster, levels = c(1:length(unique(cluster_result$cluster_membership$cluster)))))
   
   p <- ggplot2::ggplot() + 
     ggplot2::geom_segment(data=dgdata, ggplot2::aes(x=x, y=y, xend=xend, yend=yend),lineend =  "round") +
-    geom_text(data=label_data, y=0.04, hjust = 0, ggplot2::aes(x=xend, label=label), size=2) +
-    coord_flip() + 
-    scale_y_reverse(limits = c(NA,-0.5)) +
+    ggplot2::geom_text(data=label_data, y=0.04, hjust = 0, ggplot2::aes(x=xend, label=label), size=2) +
+    ggplot2::coord_flip() + 
+    ggplot2::scale_y_reverse(limits = c(NA,-0.5)) +
     ggplot2::geom_point(data = ddata$labels, ggplot2::aes(color = cluster, x = x), y = 0.02, size =4, alpha = 0.5, show.legend = F) +
     ggplot2::geom_text(data = ddata$labels, ggplot2::aes(label = cluster, x = x, color = cluster), y = 0.02, show.legend = F, size = 2)+
     ggplot2::theme_bw() +
@@ -70,10 +84,10 @@ clusterDendro <- function(
     for(s in unique(cluster_result$cluster_membership$sign)){
 
     input <- cluster_result$cluster_membership %>% 
-      filter(sign == s) 
+      dplyr::filter(sign == s) 
       
     clusters <- input %>%
-      pull(cluster) %>% 
+      dplyr::pull(cluster) %>% 
       unique()
     
     
@@ -89,7 +103,7 @@ clusterDendro <- function(
      dhc <- stats::as.dendrogram(cl)
      
      jdf <- input %>% 
-       mutate(label = stringr::str_replace_all(pathway, "_", " "),
+       dplyr::mutate(label = stringr::str_replace_all(pathway, "_", " "),
               label = tolower(label),
               cluster = factor(cluster, levels = c(1:length(clusters))))
      
@@ -100,34 +114,36 @@ clusterDendro <- function(
        dplyr::mutate(label = stringr::str_replace_all(label, "_", " "),
                      label = tolower(label))
      
-     label_data <- dplyr::bind_cols(filter(ggdendro::segment(ddata), x == xend & x%%1 == 0 & yend == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
+     label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0 & yend == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
      
      dgdata <- ggdendro::segment(ddata) %>% 
-       left_join(select(label_data, c(x, cluster))) %>% 
-       mutate(lwd = NA)
+       dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+       dplyr::mutate(lwd = NA)
      
      for(i in unique(jdf$cluster)){
        max <- max(dgdata$x[which(dgdata$cluster == i)])
        min <- min(dgdata$x[which(dgdata$cluster == i)])
        dgdata <- dgdata %>% 
-         mutate(cluster = ifelse(x < max & x > min & xend < max & xend > min, i, cluster))
+         dplyr::mutate(cluster = ifelse(x < max & x > min & xend < max & xend > min, i, cluster))
      }
      
      dgdata <- dgdata %>% 
-       mutate(
+       dplyr::mutate(
          cluster = factor(cluster, levels = c(1:length(clusters))))
     
      
      figlist[[s]] <- local({
+       . <- pathway <- label <- cluster <- x <- xend <- y <- yend <- NULL
        dgdata <- dgdata
        label_data <- label_data
        ddata <- ddata
+       s <- s
        
        ggplot2::ggplot() + 
          ggplot2::geom_segment(data=dgdata, ggplot2::aes(x=x, y=y, xend=xend, yend=yend),lineend =  "round") +
-         geom_text(data=label_data, y=0.04, hjust = 0, ggplot2::aes(x=xend, label=label), size=2) +
-         coord_flip() + 
-         scale_y_reverse(limits = c(NA,-0.5)) +
+         ggplot2::geom_text(data=label_data, y=0.04, hjust = 0, ggplot2::aes(x=xend, label=label), size=2) +
+         ggplot2::coord_flip() + 
+         ggplot2::scale_y_reverse(limits = c(NA,-0.5)) +
          ggplot2::geom_point(data = ddata$labels, ggplot2::aes(color = cluster, x = x), y = 0.02, size =4, alpha = 0.5, show.legend = F) +
          ggplot2::geom_text(data = ddata$labels, ggplot2::aes(label = cluster, x = x, color = cluster), y = 0.02, show.legend = F, size = 2)+
          ggplot2::theme_bw() +
