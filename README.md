@@ -15,12 +15,9 @@ clusterTreemap - treemap of clustering solution
 clusterWordclouds - gs name and description-based word clouds to aid in cluster annotation
 
 
-install.packages("devtools")
-devtools::install_github("UWISDOM/madRich")
-
 ### Installation
 
 ```
 install.packages("devtools")
-devtools::install_github("BIGslu/kimma")
+devtools::install_github("UWISDOM/madRich")
 ```
