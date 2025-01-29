@@ -128,7 +128,9 @@ clusterSets <- function(
       # Fix C2 subcat names
       if(cat == "C2"){
         database <- database %>% # subcategories in C2 is formatted bad. separate "CP" from "KEGG", etc.
-          tidyr::separate(gs_subcat, sep = ":", into = c("gs_subcat_format", "x"), fill = "right")
+          tidyr::separate_wider_delim(gs_subcat, delim = ":", 
+                                      names = c("gs_subcat_format", "x"),
+                                      too_few="align_start")
       } else{
         database <- database %>%
           dplyr::mutate(gs_subcat_format = gs_subcat)
