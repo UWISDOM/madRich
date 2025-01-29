@@ -79,7 +79,7 @@ clusterSets <- function(
   . <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
   
   #Errors
-  if(is.null(names(subcategories))){stop("subcategories must be a named vector.")}
+  if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories must be a named vector.")}
   
   final <- list()
   final[["input_df"]] <- df

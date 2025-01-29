@@ -69,7 +69,7 @@ chooseCutHeight <- function(
 . <- clusters <- cut_height <- y <- k_at_height <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- kmax_holder <- NULL
   
 #Errors
-if(is.null(names(subcategories))){stop("subcategories must be a named vector.")}
+if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories must be a named vector.")}
 
   if(enrich_method == "gsea"){
     print("Note: when using for GSEA, this function will generate silhouette scores for all pass-filter gene sets separated by sign of NES. The 'best' solution will be the lower cut height of the two (err on the side of more clusters.")
