@@ -122,6 +122,8 @@ if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories 
     db_list <- list()
     for(cat in categories){
       database <- msigdbr::msigdbr(species, cat)
+      
+      # Fix C2 subcat names
       if(cat == "C2"){
         database <- database %>% # subcategories in C2 is formatted bad. separate "CP" from "KEGG", etc.
           tidyr::separate(gs_subcat, sep = ":", into = c("gs_subcat_format", "x"), fill = "right")
@@ -130,9 +132,12 @@ if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories 
           dplyr::mutate(gs_subcat_format = gs_subcat)
       }
       
-      if(cat %in% names(subcategories)){ # filter to subcat when applicable
+      #Deal with multiple subcat per cat
+      subcats <- subcategories[names(subcategories)==cat]
+      if(length(subcats)>0){
+        # filter to subcat when applicable
         database <- database %>% 
-          dplyr::filter(gs_subcat_format == subcategories[[cat]])
+          dplyr::filter(gs_subcat_format %in% subcats)
       }
       
       if(length(pw_list) > 1){# remove pathways not in enrichment result
