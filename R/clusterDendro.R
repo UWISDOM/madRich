@@ -46,7 +46,8 @@ clusterDendro <- function(
   label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
 
   dgdata <- ggdendro::segment(ddata) %>% 
-    dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+    dplyr::left_join(dplyr::select(label_data, c(x, cluster)),
+                     by = dplyr::join_by(x)) %>% 
     dplyr::mutate(lwd = NA)
   
     for(i in unique(jdf$cluster)){
