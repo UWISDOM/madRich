@@ -7,8 +7,8 @@
 clusterSets(
   df = NULL,
   enrich_method = "hypergeometric",
-  category = NULL,
-  subcategory = NULL,
+  categories = NULL,
+  subcategories = NULL,
   db = NULL,
   ID = "SYMBOL",
   species = "human",
@@ -20,13 +20,13 @@ clusterSets(
 )
 }
 \arguments{
-\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
+\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set categories ("gs_cat"), and gene set subcategories where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
 
 \item{enrich_method}{"hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.}
 
-\item{category}{a vector of Broad gene set categories included among the pathway names in df}
+\item{categories}{a vector of Broad gene set categories included among the pathway names in df}
 
-\item{subcategory}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')}
+\item{subcategories}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'categories')}
 
 \item{db}{optional, custom gene set database formatted like MSigDB}
 
@@ -51,10 +51,35 @@ a list containing the input data frame, formatted reference database, cluster me
 Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 }
 \examples{
-res <- clusterSets(df = dat,
-                   category = c("H", "C2", "C5"),
-                   subcategory = c("C2" = "CP", "C5" = "GO:BP"),
-                   hclust_height = 0.5,
-                   enrich_method = "gsea",
-                   group_name = "g1")
+# Run GSEA using SEARchways
+gene_list <- SEARchways::example.gene.list
+df1 <- SEARchways::BIGsea(gene_list=gene_list, 
+             category="C2", subcategory="CP", ID="ENSEMBL")
+df2 <- SEARchways::BIGsea(gene_list=gene_list, 
+             category="C5", subcategory="GO:BP", ID="ENSEMBL")
+df <- dplyr::bind_rows(df1, df2)
+
+res <- clusterSets(df = df, enrich_method="hypergeometric",
+                ID = "ENSEMBL",
+                categories = c("C2","C5"),
+                #subcategories = c("C2" = "CP", "C5" = "GO:BP"),
+                hclust_height = 0.3,
+                group_name = "HRV1")
+
+# Run enrichment using SEARchways
+gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+                  HRV2 = names(SEARchways::example.gene.list[[2]]))
+df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+             category="C5", subcategory="GO:MF", ID="ENSEMBL")
+df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+             category="C5", subcategory="GO:BP", ID="ENSEMBL")
+df <- dplyr::bind_rows(df1, df2)
+
+res <- clusterSets(df = df, enrich_method="hypergeometric",
+                ID = "ENSEMBL",
+                categories = c("C5"),
+                subcategories = c("C5" = "GO:MF", "C5" = "GO:BP"),
+                hclust_height = 0.3,
+                group_name = "HRV1",
+                fdr_cutoff = 0.3)
 }

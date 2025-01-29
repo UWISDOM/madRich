@@ -7,13 +7,9 @@
 #' @export
 #'
 #' @examples
-#' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
-#'                    hclust_height = 0.9,
-#'                    enrich_method = "gsea",
-#'                    group_name = "g1")
-#' clusterWordclouds(res, rmwords = c("defense", "immune"))
+#' # Not run
+#' # Create res object as described in clusterSets example
+#' # clusterWordclouds(res, rmwords = c("defense", "immune"))
 
 clusterWordclouds <- function(
     cluster_result = NULL,
@@ -104,7 +100,8 @@ clusterWordclouds <- function(
     cl_df <- cluster_result$cluster_membership
     
     df2 <- df %>%
-      dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct()) %>%  # grab gene set 
+      dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
+                       by = dplyr::join_by(pathway)) %>%  # grab gene set 
       dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
     
     gsv <- df2 %>% # get cluster list ordered by number of gene sets in cluster. 
@@ -231,7 +228,8 @@ clusterWordclouds <- function(
         dplyr::filter(pathway %in% cl_df$pathway)
       
       df2 <- df %>%
-        dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct()) %>%  # grab gene set 
+        dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
+                         by = dplyr::join_by(pathway)) %>%  # grab gene set 
         dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
       
       gsv <- df2 %>% # get cluster list ordered by number of gene sets in cluster. 

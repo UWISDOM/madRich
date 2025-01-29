@@ -6,13 +6,9 @@
 #' @export
 #'
 #' @examples
-#' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
-#'                    hclust_height = 0.9,
-#'                    enrich_method = "gsea",
-#'                    group_name = "g1")
-#' clusterDendro(res)
+#' # Not run
+#' # Create res object as described in clusterSets example
+#' # clusterDendro(res)
 
 clusterDendro <- function(
     cluster_result = NULL
@@ -46,7 +42,8 @@ clusterDendro <- function(
   label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
 
   dgdata <- ggdendro::segment(ddata) %>% 
-    dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+    dplyr::left_join(dplyr::select(label_data, c(x, cluster)),
+                     by = dplyr::join_by(x)) %>% 
     dplyr::mutate(lwd = NA)
   
     for(i in unique(jdf$cluster)){
@@ -117,7 +114,8 @@ clusterDendro <- function(
      label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0 & yend == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
      
      dgdata <- ggdendro::segment(ddata) %>% 
-       dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+       dplyr::left_join(dplyr::select(label_data, c(x, cluster)),
+                        by = dplyr::join_by(x)) %>% 
        dplyr::mutate(lwd = NA)
      
      for(i in unique(jdf$cluster)){
