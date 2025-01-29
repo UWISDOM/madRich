@@ -25,7 +25,7 @@ clusterTreemap <- function(
     
     ## format inputs ##
     if(scores == "pvalue"){
-      df$score <- -log10(df$pvalue)
+      df$score <- -log10(df$pval)
       scr_str <- "-log10(p-value)"
     } else if(scores == "size"){
       df$score <- df$K
@@ -71,7 +71,7 @@ clusterTreemap <- function(
       
       ## format inputs ##
       if(scores == "pvalue"){
-        df$score <- -log10(df$pvalue)
+        df$score <- -log10(df$pval)
         scr_str <- "-log10(p-value)"
       } else if(scores == "size"){
         df$score <- df$K
