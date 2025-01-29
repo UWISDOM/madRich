@@ -1,7 +1,7 @@
-# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set categories ("gs_cat"), and gene set subcategories where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
 # enrich_method: "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
-# category: a vector of Broad gene set categories included among the pathway names in df
-# subcategory: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+# categories: a vector of Broad gene set categories included among the pathway names in df
+# subcategories: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'categories')
 # db: optional, custom gene set database formatted like MSigDB
 # ID: "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
 # species: "human" or "mouse" for msigDB
@@ -13,10 +13,10 @@
 
 #' Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 #'
-#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set categories ("gs_cat"), and gene set subcategories where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
 #' @param enrich_method "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
-#' @param category a vector of Broad gene set categories included among the pathway names in df
-#' @param subcategory a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+#' @param categories a vector of Broad gene set categories included among the pathway names in df
+#' @param subcategories a named vector of Broad gene set subcategories (names are corresponding cats provided in 'categories')
 #' @param db optional, custom gene set database formatted like MSigDB
 #' @param ID "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
 #' @param species "human" or "mouse" for msigDB
@@ -31,8 +31,8 @@
 #'
 #' @examples
 #' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    categories = c("H", "C2", "C5"),
+#'                    subcategories = c("C2" = "CP", "C5" = "GO:BP"),
 #'                    hclust_height = 0.5,
 #'                    enrich_method = "gsea",
 #'                    group_name = "g1")
@@ -40,8 +40,8 @@
 clusterSets <- function(
     df = NULL,
     enrich_method = "hypergeometric",
-    category = NULL,
-    subcategory = NULL,
+    categories = NULL,
+    subcategories = NULL,
     db = NULL,
     ID = "SYMBOL",
     species = "human",
@@ -52,6 +52,9 @@ clusterSets <- function(
     group_name = NULL
 ){
   . <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
+  
+  #Errors
+  if(is.null(names(subcategories))){stop("subcategories must be a named vector.")}
   
   final <- list()
   final[["input_df"]] <- df
@@ -94,19 +97,19 @@ clusterSets <- function(
  
   if(is.null(db)){
     db_list <- list()
-    for(cat in category){
+    for(cat in categories){
       database <- msigdbr::msigdbr(species, cat)
       if(cat == "C2"){
-        database <- database %>% # subcategory in C2 is formatted bad. separate "CP" from "KEGG", etc.
+        database <- database %>% # subcategories in C2 is formatted bad. separate "CP" from "KEGG", etc.
           tidyr::separate(gs_subcat, sep = ":", into = c("gs_subcat_format", "x"), fill = "right")
       } else{
         database <- database %>%
           dplyr::mutate(gs_subcat_format = gs_subcat)
       }
       
-      if(cat %in% names(subcategory)){ # filter to subcat when applicable
+      if(cat %in% names(subcategories)){ # filter to subcat when applicable
         database <- database %>% 
-          dplyr::filter(gs_subcat_format == subcategory[[cat]])
+          dplyr::filter(gs_subcat_format == subcategories[[cat]])
       }
       
       if(length(pw_list) > 1){# remove pathways not in enrichment result
