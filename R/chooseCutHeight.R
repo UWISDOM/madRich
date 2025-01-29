@@ -72,7 +72,7 @@ chooseCutHeight <- function(
 if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories must be a named vector.")}
 
   if(enrich_method == "gsea"){
-    print("Note: when using for GSEA, this function will generate silhouette scores for all pass-filter gene sets separated by sign of NES. The 'best' solution will be the lower cut height of the two (err on the side of more clusters.")
+    print("Note: when using for GSEA, this function will generate silhouette scores for all pass-filter gene sets separated by sign of NES. The 'best' solution will be the lower cut height of the two (e.g. err on the side of more clusters).")
   }
   
   if(!is.null(kmax)){
