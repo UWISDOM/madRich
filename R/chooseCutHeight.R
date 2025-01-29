@@ -217,6 +217,7 @@ if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories 
       olmd <- 1-olm # convert similarity matrix to distance matrix
       
       ### make clusters ###
+      if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
       cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
       
       nclust <- c()
@@ -293,6 +294,7 @@ if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories 
   olmd <- 1-olm # convert similarity matrix to distance matrix
   
   ### make clusters ###
+  if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
   cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
   
   nclust <- c()

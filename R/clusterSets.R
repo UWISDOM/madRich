@@ -218,6 +218,7 @@ clusterSets <- function(
       olmd <- 1-olm # convert similarity matrix to distance matrix
       
       ### make clusters ###
+      if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
       cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
       
       if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
@@ -258,6 +259,7 @@ clusterSets <- function(
     olmd <- 1-olm # convert similarity matrix to distance matrix
     
     ### make clusters ###
+    if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
     cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
     
     if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
