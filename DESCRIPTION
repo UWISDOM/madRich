@@ -29,3 +29,7 @@ Imports:
     tidyr,
     treemapify,
     umap
+biocViews: 
+Remotes: BIGslu/SEARchways
+Suggests: 
+    SEARchways

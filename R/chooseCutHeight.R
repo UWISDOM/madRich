@@ -18,11 +18,37 @@
 #' @export
 #'
 #' @examples
-#' chooseCutHeight(df = dat,
-#'                 categories = c("H", "C2", "C5"),
+#' # Run GSEA using SEARchways
+#' gene_list <- SEARchways::example.gene.list
+#' df1 <- SEARchways::BIGsea(gene_list=gene_list, 
+#'              category="C2", subcategory="CP", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGsea(gene_list=gene_list, 
+#'              category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' 
+#' chooseCutHeight(df = df, enrich_method="gsea",
+#'                 ID = "ENSEMBL",
+#'                 categories = c("C2", "C5"),
 #'                 subcategories = c("C2" = "CP", "C5" = "GO:BP"),
-#'                 hclust_heights = c(0.1,0.3,0.5,0.7,0.9),
-#'                 group = "g1")
+#'                 hclust_heights = c(0.3,0.5,0.7),
+#'                 group_name = "HRV1")
+#' 
+#' # Run enrichment using SEARchways
+#' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+#'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
+#' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'              category="C5", subcategory="GO:MF", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'              category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' 
+#' chooseCutHeight(df = df, enrich_method="hypergeometric",
+#'                 ID = "ENSEMBL",
+#'                 categories = c("C5"),
+#'                 subcategories = c("C5" = "GO:MF", "C5" = "GO:BP"),
+#'                 hclust_heights = c(0.3,0.5,0.7),
+#'                 group_name = "HRV1",
+#'                 fdr_cutoff = 0.3)
 
 chooseCutHeight <- function(
     df = NULL,

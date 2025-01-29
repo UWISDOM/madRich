@@ -7,12 +7,9 @@
 #' @export
 #'
 #' @examples
-#' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
-#'                    hclust_height = 0.9,
-#'                    enrich_method = "hypergeometric")
-#' clusterTreemap(res)
+#' # Not run
+#' # Create res object as described in clusterSets example
+#' # clusterTreemap(res)
 
 clusterTreemap <- function(
     cluster_result = NULL,
