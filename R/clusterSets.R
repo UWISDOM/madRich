@@ -1,25 +1,12 @@
-# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_subcollection"), and gene set subcollections where applicable ("gs_collection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
-# enrich_method: "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
-# collections: a vector of Broad gene set categories included among the pathway names in df
-# subcollections: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collection')
-# db: optional, custom gene set database formatted like MSigDB
-# ID: "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
-# species: "human" or "mouse" for msigDB
-# hclust_height: Height for cutting tree for hclust. Value must be between 0 and 1
-# fdr_cutoff: optional, high-end filter to apply to df before clustering
-# abs_NES_cutoff: optional, low-end. absolute value filter to apply to df before clustering of GSEA results
-# kK_cutoff: optional, low-end filter to apply to df before clustering of hypergeometric results
-# group_name: optional, if your dataset contains multiple groups in a 'group' column, select pathways from provided group. Otherwise, all pathways passing filter will be clustered. 
-
 #' Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 #'
 #' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_collection"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
 #' @param enrich_method "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
 #' @param collections a vector of Broad gene set categories included among the pathway names in df
-#' @param subcollections a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collections')
+#' @param subcollections a named vector of Broad gene set subcollections (names are corresponding cats provided in 'collections')
 #' @param db optional, custom gene set database formatted like MSigDB
 #' @param ID "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
-#' @param species "HS" for human, or "MM" for mouse for msigDB
+#' @param species "Homo sapiens" for human or "Mus musculus" for mouse
 #' @param hclust_height Height for cutting tree for hclust. Value must be between 0 and 1
 #' @param fdr_cutoff optional, high-end filter to apply to df before clustering
 #' @param abs_NES_cutoff optional, low-end. absolute value filter to apply to df before clustering of GSEA results
@@ -30,13 +17,22 @@
 #' @export
 #'
 #' @examples
-#' res <- clusterSets(df = dat,
-#'                    collections = c("H", "C2", "C5"),
-#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
-#'                    hclust_height = 0.5,
-#'                    enrich_method = "gsea",
-#'                    group_name = "g1")
-
+#' # Run enrichment using SEARchways
+#' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+#'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
+#' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' 
+#' res <- clusterSets(df = df, enrich_method="hypergeometric",
+#'                    ID = "ENSEMBL",
+#'                    collections = c("C5"),
+#'                    subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+#'                    hclust_height = c(0.7),
+#'                    group_name = "HRV1",
+#'                    fdr_cutoff = 0.4)
 clusterSets <- function(
     df = NULL,
     enrich_method = "hypergeometric",
@@ -44,14 +40,18 @@ clusterSets <- function(
     subcollections = NULL,
     db = NULL,
     ID = "SYMBOL",
-    species = "HS",
+    species = "Homo sapiens",
     hclust_height = 0.7,
     fdr_cutoff = NULL,
     abs_NES_cutoff = NULL, 
     kK_cutoff = NULL,
     group_name = NULL
 ){
-  . <- gs_name <- gs_subcollection_format <- gs_subcollection <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
+
+  . <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- gs_subcollection <- gs_subcollection_format <- NULL
+  
+  #Errors
+  if(!is.null(subcollections) & is.null(names(subcollections))){stop("subcollections must be a named vector.")}
   
   final <- list()
   final[["input_df"]] <- df
@@ -93,21 +93,31 @@ clusterSets <- function(
   } else{stop("Options for enrichment method are 'hypergeometric' and 'gsea'.")}
  
   if(is.null(db)){ # if database is not provided
+    msigdbdf::msigdbdf("HS")
     db_list <- list()
+    
     for(cat in collections){
-      database <- msigdbr::msigdbr(db_species = species, collection = cat) # get msigdb reference
+      database <- msigdbr::msigdbr(species = species, collection = cat) # get msigdb reference
+      # Fix C2 subcat names
       if(cat == "C2"){
-        database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc.
+      database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc
           tidyr::separate_wider_delim(gs_subcollection, ":", names = c("gs_subcollection_format", "x"), too_few = "align_start", too_many = "merge")
       } else{
         database <- database %>%
           dplyr::mutate("gs_subcollection_format" = gs_subcollection)
-      }
+        }
       
       if(cat %in% names(subcollections)){ # filter to subcat when applicable
-        database <- database %>% 
-          dplyr::filter(gs_subcollection_format == subcollections[[cat]])
+        
+        #Deal with multiple subcat per cat
+        subcats <- subcollections[names(subcollections)==cat]
+        if(length(unique(subcats))>1){
+          # filter to subcat when applicable
+          database <- database %>% 
+            dplyr::filter(gs_subcollection_format %in% unique(subcats))
+        }
       }
+      
       
       if(length(pw_list) > 1){# remove pathways not in enrichment result
         db_pos <- database %>% 

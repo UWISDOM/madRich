@@ -11,7 +11,7 @@ clusterSets(
   subcollections = NULL,
   db = NULL,
   ID = "SYMBOL",
-  species = "HS",
+  species = "Homo sapiens",
   hclust_height = 0.7,
   fdr_cutoff = NULL,
   abs_NES_cutoff = NULL,
@@ -26,13 +26,13 @@ clusterSets(
 
 \item{collections}{a vector of Broad gene set categories included among the pathway names in df}
 
-\item{subcollections}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collections')}
+\item{subcollections}{a named vector of Broad gene set subcollections (names are corresponding cats provided in 'collections')}
 
 \item{db}{optional, custom gene set database formatted like MSigDB}
 
 \item{ID}{"SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.}
 
-\item{species}{"HS" for human, or "MM" for mouse for msigDB}
+\item{species}{"Homo sapiens" for human or "Mus musculus" for mouse}
 
 \item{hclust_height}{Height for cutting tree for hclust. Value must be between 0 and 1}
 
@@ -51,10 +51,20 @@ a list containing the input data frame, formatted reference database, cluster me
 Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 }
 \examples{
-res <- clusterSets(df = dat,
-                   collections = c("H", "C2", "C5"),
-                   subcollections = c("C2" = "CP", "C5" = "GO:BP"),
-                   hclust_height = 0.5,
-                   enrich_method = "gsea",
-                   group_name = "g1")
+# Run enrichment using SEARchways
+gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+                  HRV2 = names(SEARchways::example.gene.list[[2]]))
+df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+                             category="C5", subcategory="GO:MF", ID="ENSEMBL")
+df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+                              category="C5", subcategory="GO:BP", ID="ENSEMBL")
+df <- dplyr::bind_rows(df1, df2)
+
+res <- clusterSets(df = df, enrich_method="hypergeometric",
+                   ID = "ENSEMBL",
+                   collections = c("C5"),
+                   subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+                   hclust_height = c(0.7),
+                   group_name = "HRV1",
+                   fdr_cutoff = 0.4)
 }

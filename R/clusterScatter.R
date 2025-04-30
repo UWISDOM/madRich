@@ -8,11 +8,21 @@
 #' @export
 #'
 #' @examples
-#' res <- clusterSets(df = dat,
-#'                    collections = c("H", "C2", "C5"),
-#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
-#'                    hclust_height = 0.9,
-#'                    enrich_method = "hypergeometric")
+#' #' # Run enrichment using SEARchways
+#' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+#'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
+#' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' res <- clusterSets(df = df, enrich_method="hypergeometric",
+#'                    ID = "ENSEMBL",
+#'                    collections = c("C5"),
+#'                    subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+#'                    hclust_height = c(0.7),
+#'                    group_name = "HRV1",
+#'                    fdr_cutoff = 0.4)
 #' clusterScatter(res, dimred = "PCoA", scores = "size")
 
 clusterScatter <- function(
@@ -30,11 +40,22 @@ clusterScatter <- function(
   
   ## format inputs ##
   if(scores == "pvalue"){
-    df$score <- -log10(df$pvalue)
+    df$score <- -log10(df$pval)
     scr_str <- "-log10(p-value)"
   } else if(scores == "size"){
-    df$score <- df$K
-    scr_str <- "Gene Set Size"
+    
+    if(!is.null(df$K)){
+      df$score <- df$K
+      scr_str <- "Gene Set Size"
+    } else if(!is.null(df$size_pathway)){
+      df$score <- df$size_pathway
+      scr_str <- "Gene Set Size"
+    } else{
+      df$score <- 1
+      print("No valid gene set size columns provided. Please make sure input data has size_pathway or K, or else provide p-values to size points")
+      scr_str <- "Gene Set"
+    }
+    
   }
   
   ## get dimension reduction df ##
