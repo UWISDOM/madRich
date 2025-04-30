@@ -2,18 +2,17 @@
 % Please edit documentation in R/chooseCutHeight.R
 \name{chooseCutHeight}
 \alias{chooseCutHeight}
-\title{Plots to help guide choice of cut height for heirarchical clustering of gene sets}
+\title{Plots to help guide choice of cut height for hierarchical clustering of gene sets}
 \usage{
 chooseCutHeight(
   df = NULL,
   enrich_method = "hypergeometric",
-  category = NULL,
-  subcategory = NULL,
+  collections = NULL,
+  subcollections = NULL,
   db = NULL,
   ID = "SYMBOL",
-  species = "human",
+  species = "HS",
   hclust_heights = c(0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-  kmax = NULL,
   fdr_cutoff = NULL,
   abs_NES_cutoff = NULL,
   kK_cutoff = NULL,
@@ -21,23 +20,21 @@ chooseCutHeight(
 )
 }
 \arguments{
-\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
+\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_collection"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
 
 \item{enrich_method}{"hypergeometric" or "gsea." Serves as a sanity check for df filtering}
 
-\item{category}{a vector of Broad gene set categories included among the pathway names in df}
+\item{collections}{a vector of Broad gene set collections included among the pathway names in df}
 
-\item{subcategory}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')}
+\item{subcollections}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collections')}
 
 \item{db}{optional, custom gene set database formatted like MSigDB}
 
 \item{ID}{"SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.}
 
-\item{species}{"human" or "mouse" for msigDB}
+\item{species}{"HS" for human, or "MM" for mouse for msigDB}
 
 \item{hclust_heights}{vector of heights to test  for cuttree. Values must be between 0 and 1}
-
-\item{kmax}{max number of clusters to assess for silhouette plot}
 
 \item{fdr_cutoff}{optional, FDR filter to apply to df before testing clustering solutions}
 
@@ -51,12 +48,12 @@ chooseCutHeight(
 a list containing a plot(s) of silhouette scores by number of clusters, a summary dataframe, and a suggested "optimal" cut height
 }
 \description{
-Plots to help guide choice of cut height for heirarchical clustering of gene sets
+Plots to help guide choice of cut height for hierarchical clustering of gene sets
 }
 \examples{
-chooseCutHeight(df = dat,
-                category = c("H", "C2", "C5"),
-                subcategory = c("C2" = "CP", "C5" = "GO:BP"),
-                hclust_heights = c(0.1,0.3,0.5,0.7,0.9),
-                group = "g1")
+chooseCutHeight(df = madRich::dat,
+                collections = c("H", "C2", "C5"),
+                subcollections = c("C2" = "CP", "C5" = "GO:BP"),
+                hclust_heights = c(0.7,0.9),
+                group_name = "g1")
 }

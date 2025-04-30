@@ -8,8 +8,8 @@
 #'
 #' @examples
 #' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    collections = c("H", "C2", "C5"),
+#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
 #'                    hclust_height = 0.9,
 #'                    enrich_method = "hypergeometric")
 #' clusterTreemap(res)
@@ -23,7 +23,7 @@ clusterTreemap <- function(
   set.seed(432143)
   
   # hypergeometric - one plot
-  if(is.null(cluster_result$cluster_membership$sign)){
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
     df <- cluster_result$input_df
     
     ## format inputs ##
@@ -66,7 +66,7 @@ clusterTreemap <- function(
     return(p)
   } 
   # gsea - list of 2 plots
-  else{
+  else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
 
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){

@@ -7,11 +7,10 @@
 #'
 #' @examples
 #' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    collections = c("H", "C2", "C5"),
+#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
 #'                    hclust_height = 0.9,
-#'                    enrich_method = "gsea",
-#'                    group_name = "g1")
+#'                    enrich_method = "hypergeometric")
 #' clusterDendro(res)
 
 clusterDendro <- function(
@@ -20,7 +19,7 @@ clusterDendro <- function(
   . <- pathway <- label <- cluster <- x <- xend <- y <- yend <- NULL
   set.seed(432143)
   
-  if(is.null(cluster_result$cluster_membership$sign)){
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
 
   dm <- cluster_result$dist_mat
   rownames(dm) <- stringr::str_replace_all(rownames(dm), "_", " ")
@@ -77,9 +76,8 @@ clusterDendro <- function(
           axis.ticks = ggplot2::element_blank()) 
 
   return(p)
-  } else{
+  } else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
     
-
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
 
@@ -158,6 +156,4 @@ clusterDendro <- function(
      
     }
     return(figlist)
-    
-    
 }}

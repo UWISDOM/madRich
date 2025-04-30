@@ -29,3 +29,5 @@ Imports:
     tidyr,
     treemapify,
     umap
+biocViews:
+Suggests: msigdbrdf

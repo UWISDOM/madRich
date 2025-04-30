@@ -17,10 +17,9 @@ Plot dendrogram of clustered gene sets
 }
 \examples{
 res <- clusterSets(df = dat,
-                   category = c("H", "C2", "C5"),
-                   subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+                   collections = c("H", "C2", "C5"),
+                   subcollections = c("C2" = "CP", "C5" = "GO:BP"),
                    hclust_height = 0.9,
-                   enrich_method = "gsea",
-                   group_name = "g1")
+                   enrich_method = "hypergeometric")
 clusterDendro(res)
 }

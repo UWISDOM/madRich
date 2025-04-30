@@ -21,9 +21,9 @@ Create scatterplot of clustered gene set result
 }
 \examples{
 res <- clusterSets(df = dat,
-                   category = c("H", "C2", "C5"),
-                   subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+                   collections = c("H", "C2", "C5"),
+                   subcollections = c("C2" = "CP", "C5" = "GO:BP"),
                    hclust_height = 0.9,
                    enrich_method = "hypergeometric")
-clusterScatter(res, dimred = "UMAP", scores = "size")
+clusterScatter(res, dimred = "PCoA", scores = "size")
 }

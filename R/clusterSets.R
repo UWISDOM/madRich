@@ -1,7 +1,7 @@
-# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+# df: result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_subcollection"), and gene set subcollections where applicable ("gs_collection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
 # enrich_method: "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
-# category: a vector of Broad gene set categories included among the pathway names in df
-# subcategory: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+# collections: a vector of Broad gene set categories included among the pathway names in df
+# subcollections: a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collection')
 # db: optional, custom gene set database formatted like MSigDB
 # ID: "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
 # species: "human" or "mouse" for msigDB
@@ -13,13 +13,13 @@
 
 #' Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 #'
-#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
+#' @param df result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_collection"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.
 #' @param enrich_method "hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.
-#' @param category a vector of Broad gene set categories included among the pathway names in df
-#' @param subcategory a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')
+#' @param collections a vector of Broad gene set categories included among the pathway names in df
+#' @param subcollections a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collections')
 #' @param db optional, custom gene set database formatted like MSigDB
 #' @param ID "SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.
-#' @param species "human" or "mouse" for msigDB
+#' @param species "HS" for human, or "MM" for mouse for msigDB
 #' @param hclust_height Height for cutting tree for hclust. Value must be between 0 and 1
 #' @param fdr_cutoff optional, high-end filter to apply to df before clustering
 #' @param abs_NES_cutoff optional, low-end. absolute value filter to apply to df before clustering of GSEA results
@@ -31,8 +31,8 @@
 #'
 #' @examples
 #' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    collections = c("H", "C2", "C5"),
+#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
 #'                    hclust_height = 0.5,
 #'                    enrich_method = "gsea",
 #'                    group_name = "g1")
@@ -40,42 +40,42 @@
 clusterSets <- function(
     df = NULL,
     enrich_method = "hypergeometric",
-    category = NULL,
-    subcategory = NULL,
+    collections = NULL,
+    subcollections = NULL,
     db = NULL,
     ID = "SYMBOL",
-    species = "human",
+    species = "HS",
     hclust_height = 0.7,
     fdr_cutoff = NULL,
     abs_NES_cutoff = NULL, 
     kK_cutoff = NULL,
     group_name = NULL
 ){
-  . <- gs_name <- gs_subcat_format <- gs_subcat <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
+  . <- gs_name <- gs_subcollection_format <- gs_subcollection <- group <- `k/K` <- NES <- FDR <- db_list <- database <- db_format <- subcat <- NULL
   
   final <- list()
   final[["input_df"]] <- df
   
   ### format df ###
-  if(!is.null(fdr_cutoff)){
+  if(!is.null(fdr_cutoff)){ # apply FDR cutoff
     df <- df %>% 
       dplyr::filter(FDR < fdr_cutoff)
   }
-  if(!is.null(abs_NES_cutoff)){
+  if(!is.null(abs_NES_cutoff)){ # apply NES cutoff if input is GSEA
     if(enrich_method != "gsea"){
       stop("NES filtering is only available with the 'gsea' method.")
       }
     df <- df %>% 
       dplyr::filter(abs(NES) > abs_NES_cutoff)
   }
-  if(!is.null(kK_cutoff)){
+  if(!is.null(kK_cutoff)){ # apply k/K cutoff if input is enrichment
     if(enrich_method != "hypergeometric"){
       stop("k/K filtering is only available with the 'hypergeometric' method.")
       }
     df <- df %>% 
       dplyr::filter(`k/K` > kK_cutoff)
   }
-  if(!is.null(group_name)){
+  if(!is.null(group_name)){ # filter by group of interest if provided
     df <- df%>% 
       dplyr::filter(group == group_name)
   }
@@ -87,26 +87,26 @@ clusterSets <- function(
   pw_list <- list()
   if(enrich_method == "hypergeometric") {
     pw_list[["pathways"]] <- unique(df$pathway)
-  } else if(enrich_method == "gsea"){
+  } else if(enrich_method == "gsea"){ # separate clustering by positive and negative part if GSEA
     pw_list[["positive"]] <- unique(df$pathway[which(df$NES > 0)])
     pw_list[["negative"]] <- unique(df$pathway[which(df$NES < 0)])
   } else{stop("Options for enrichment method are 'hypergeometric' and 'gsea'.")}
  
-  if(is.null(db)){
+  if(is.null(db)){ # if database is not provided
     db_list <- list()
-    for(cat in category){
-      database <- msigdbr::msigdbr(species, cat)
+    for(cat in collections){
+      database <- msigdbr::msigdbr(db_species = species, collection = cat) # get msigdb reference
       if(cat == "C2"){
-        database <- database %>% # subcategory in C2 is formatted bad. separate "CP" from "KEGG", etc.
-          tidyr::separate(gs_subcat, sep = ":", into = c("gs_subcat_format", "x"), fill = "right")
+        database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc.
+          tidyr::separate_wider_delim(gs_subcollection, ":", names = c("gs_subcollection_format", "x"), too_few = "align_start", too_many = "merge")
       } else{
         database <- database %>%
-          dplyr::mutate(gs_subcat_format = gs_subcat)
+          dplyr::mutate("gs_subcollection_format" = gs_subcollection)
       }
       
-      if(cat %in% names(subcategory)){ # filter to subcat when applicable
+      if(cat %in% names(subcollections)){ # filter to subcat when applicable
         database <- database %>% 
-          dplyr::filter(gs_subcat_format == subcategory[[cat]])
+          dplyr::filter(gs_subcollection_format == subcollections[[cat]])
       }
       
       if(length(pw_list) > 1){# remove pathways not in enrichment result
@@ -127,7 +127,7 @@ clusterSets <- function(
     
     db_format <- dplyr::bind_rows(db_list)
    
-    if(ID == "SYMBOL") {
+    if(ID == "SYMBOL") { # assign gene names based on indicated format
       db_format$gene <- db_format$gene_symbol
     } else if(ID == "ENSEMBL"){
       db_format$gene <- db_format$ensembl_gene
@@ -162,15 +162,15 @@ clusterSets <- function(
   
   ### make distance matrix ###
   cluster_list <- list()
-  if(length(unique(db_format$sign)) > 1){
-    for(s in unique(db_format$sign)){
+  if(length(unique(db_format$sign)) > 1){ # make separate distance matrices for positive and negative parts if they exist
+    for(s in unique(db_format$sign)){ # separates if positive and negative signs
       db_temp <- db_format %>% 
         dplyr::filter(sign == s)
       dbl <- with(db_temp, base::split(gene, pathway)) # convert pathway database to named list
       olm <- matrix(ncol = length(dbl), nrow = length(dbl)) # make nset x nset matrix
       colnames(olm) <- names(dbl)
       rownames(olm) <- names(dbl)
-      for(i in names(dbl)){
+      for(i in names(dbl)){ # iterate through matrix
         for(j in names(dbl)){
           if(i == j){
             v <- 1 # self gets 1

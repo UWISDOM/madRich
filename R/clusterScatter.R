@@ -9,11 +9,11 @@
 #'
 #' @examples
 #' res <- clusterSets(df = dat,
-#'                    category = c("H", "C2", "C5"),
-#'                    subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+#'                    collections = c("H", "C2", "C5"),
+#'                    subcollections = c("C2" = "CP", "C5" = "GO:BP"),
 #'                    hclust_height = 0.9,
 #'                    enrich_method = "hypergeometric")
-#' clusterScatter(res, dimred = "UMAP", scores = "size")
+#' clusterScatter(res, dimred = "PCoA", scores = "size")
 
 clusterScatter <- function(
     cluster_result = NULL,
@@ -37,7 +37,8 @@ clusterScatter <- function(
     scr_str <- "Gene Set Size"
   }
   
-  if(is.null(cluster_result$cluster_membership$sign)){
+  ## get dimension reduction df ##
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
     cl_df <- cluster_result$cluster_membership
     df <- df %>% 
       dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
@@ -109,7 +110,7 @@ clusterScatter <- function(
     })
     
     
-  } else{
+  } else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
       cl_df <- cluster_result$cluster_membership %>% 

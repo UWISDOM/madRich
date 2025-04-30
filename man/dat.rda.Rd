@@ -10,7 +10,7 @@ A data frame with 100 rows and 8 variables:
 \describe{
 \item{group}{character. Value "g1" or "g2"}
 \item{pathway}{character. Pathway names from msigdb}
-\item{gs_cat}{character. Gene set category from msigdb. Values "H", "C2", or"C5"}
+\item{gs_collection}{character. Gene set category from msigdb. Values "H", "C2", or"C5"}
 \item{gs_subcat}{character. Gene set subcategory from msigdb. Values NA, "CP", or"GO:BP"}
 \item{NES}{double. Normalized enrichment score for GSEA-type analysis}
 \item{k/K}{double. k/K ratio for hypergeometric-type analysis}

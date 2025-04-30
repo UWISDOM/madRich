@@ -7,11 +7,11 @@
 clusterSets(
   df = NULL,
   enrich_method = "hypergeometric",
-  category = NULL,
-  subcategory = NULL,
+  collections = NULL,
+  subcollections = NULL,
   db = NULL,
   ID = "SYMBOL",
-  species = "human",
+  species = "HS",
   hclust_height = 0.7,
   fdr_cutoff = NULL,
   abs_NES_cutoff = NULL,
@@ -20,19 +20,19 @@ clusterSets(
 )
 }
 \arguments{
-\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set category ("gs_cat"), and gene set subcategory where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
+\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set collections ("gs_collection"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
 
 \item{enrich_method}{"hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.}
 
-\item{category}{a vector of Broad gene set categories included among the pathway names in df}
+\item{collections}{a vector of Broad gene set categories included among the pathway names in df}
 
-\item{subcategory}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'category')}
+\item{subcollections}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'collections')}
 
 \item{db}{optional, custom gene set database formatted like MSigDB}
 
 \item{ID}{"SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.}
 
-\item{species}{"human" or "mouse" for msigDB}
+\item{species}{"HS" for human, or "MM" for mouse for msigDB}
 
 \item{hclust_height}{Height for cutting tree for hclust. Value must be between 0 and 1}
 
@@ -52,8 +52,8 @@ Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 }
 \examples{
 res <- clusterSets(df = dat,
-                   category = c("H", "C2", "C5"),
-                   subcategory = c("C2" = "CP", "C5" = "GO:BP"),
+                   collections = c("H", "C2", "C5"),
+                   subcollections = c("C2" = "CP", "C5" = "GO:BP"),
                    hclust_height = 0.5,
                    enrich_method = "gsea",
                    group_name = "g1")
