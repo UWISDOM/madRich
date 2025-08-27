@@ -104,7 +104,7 @@ clusterSets <- function(
     db_list <- list()
     
     for(cat in collections){
-      database <- msigdbr::msigdbr(species = db_species, collection = cat) # get msigdb reference
+      database <- msigdbr::msigdbr(db_species = db_species, species = species, collection = cat) # get msigdb reference
       # Fix C2 subcat names
       if(cat == "C2"){
       database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc

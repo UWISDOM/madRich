@@ -112,7 +112,7 @@ if(!is.null(subcollections) & is.null(names(subcollections))){stop("subcollectio
     db_list <- list()
     for(cat in collections){
       
-      database <- msigdbr::msigdbr(species = db_species, collection = cat) # get msigdb reference
+      database <- msigdbr::msigdbr(db_species = db_species, species = species, collection = cat) # get msigdb reference
       if(cat == "C2"){
         database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc.
           tidyr::separate_wider_delim(gs_subcollection, ":", names = c("gs_subcollection_format", "x"), too_few = "align_start", too_many = "merge")
