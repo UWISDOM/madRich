@@ -7,13 +7,13 @@
 #' @export
 #'
 #' @examples
-#' # Run enrichment using SEARchways
+#' #' # Run enrichment using SEARchways
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
 #'                    ID = "ENSEMBL",
@@ -113,8 +113,7 @@ clusterWordclouds <- function(
     cl_df <- cluster_result$cluster_membership
     
     df2 <- df %>%
-      dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
-                       by = dplyr::join_by(pathway)) %>%  # grab gene set 
+      dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct()) %>%  # grab gene set 
       dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
     
     gsv <- df2 %>% # get cluster list ordered by number of gene sets in cluster. 
@@ -241,8 +240,7 @@ clusterWordclouds <- function(
         dplyr::filter(pathway %in% cl_df$pathway)
       
       df2 <- df %>%
-        dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
-                         by = dplyr::join_by(pathway)) %>%  # grab gene set 
+        dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct()) %>%  # grab gene set 
         dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
       
       gsv <- df2 %>% # get cluster list ordered by number of gene sets in cluster. 

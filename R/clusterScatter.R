@@ -8,13 +8,13 @@
 #' @export
 #'
 #' @examples
-#' # Run enrichment using SEARchways
+#' #' # Run enrichment using SEARchways
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
 #'                    ID = "ENSEMBL",
@@ -24,7 +24,7 @@
 #'                    group_name = "HRV1",
 #'                    fdr_cutoff = 0.4)
 #' clusterScatter(res, dimred = "PCoA", scores = "size")
-#' 
+
 clusterScatter <- function(
     cluster_result = NULL,
     dimred = "UMAP",
@@ -43,19 +43,23 @@ clusterScatter <- function(
     df$score <- -log10(df$pval)
     scr_str <- "-log10(p-value)"
   } else if(scores == "size"){
+    
     if(!is.null(df$K)){
       df$score <- df$K
       scr_str <- "Gene Set Size"
     } else if(!is.null(df$size_pathway)){
       df$score <- df$size_pathway
       scr_str <- "Gene Set Size"
-    }} else{
+    } else{
       df$score <- 1
       print("No valid gene set size columns provided. Please make sure input data has size_pathway or K, or else provide p-values to size points")
       scr_str <- "Gene Set"
     }
+    
+  }
   
-  if(is.null(cluster_result$cluster_membership$sign)){# if there is no sign column, result is from hypergeometric there is one cluster input
+  ## get dimension reduction df ##
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
     cl_df <- cluster_result$cluster_membership
     df <- df %>% 
       dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
@@ -127,8 +131,7 @@ clusterScatter <- function(
     })
     
     
-  } else{
-    # if there is a sign column, result is from GSEA and clustering is sign-separated
+  } else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
       cl_df <- cluster_result$cluster_membership %>% 

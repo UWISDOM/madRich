@@ -9,7 +9,7 @@ clusterTreemap(cluster_result = NULL, scores = "pvalue")
 \arguments{
 \item{cluster_result}{the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted}
 
-\item{scores}{How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K}
+\item{scores}{How should sections be sized on the treemap? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K}
 }
 \value{
 a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplot objects (for two-part like GSEA)
@@ -18,13 +18,13 @@ a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplo
 Create treemap plot(s) of clustered enrichment result
 }
 \examples{
-# Run enrichment using SEARchways
+#' # Run enrichment using SEARchways
 gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                             collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+                             category="C5", subcategory="GO:MF", ID="ENSEMBL")
 df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                              collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+                              category="C5", subcategory="GO:BP", ID="ENSEMBL")
 df <- dplyr::bind_rows(df1, df2)
 res <- clusterSets(df = df, enrich_method="hypergeometric",
                    ID = "ENSEMBL",

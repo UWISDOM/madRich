@@ -24,7 +24,7 @@ clusterSets(
 
 \item{enrich_method}{"hypergeometric" or "gsea." "gsea" will separate result by positive/negative NES within your filtered df.}
 
-\item{collections}{a vector of Broad gene set collections included among the pathway names in df}
+\item{collections}{a vector of Broad gene set categories included among the pathway names in df}
 
 \item{subcollections}{a named vector of Broad gene set subcollections (names are corresponding cats provided in 'collections')}
 
@@ -51,14 +51,15 @@ a list containing the input data frame, formatted reference database, cluster me
 Perform Hierarchical Clustering of Gene Sets Based on the Overlap Coefficient
 }
 \examples{
-#Run enrichment using SEARchways
+# Run enrichment using SEARchways
 gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                             collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+                             category="C5", subcategory="GO:MF", ID="ENSEMBL")
 df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                              collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+                              category="C5", subcategory="GO:BP", ID="ENSEMBL")
 df <- dplyr::bind_rows(df1, df2)
+
 res <- clusterSets(df = df, enrich_method="hypergeometric",
                    ID = "ENSEMBL",
                    collections = c("C5"),

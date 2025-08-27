@@ -1,19 +1,19 @@
 #' Create treemap plot(s) of clustered enrichment result
 #'
 #' @param cluster_result the result of clusterSets which contains the overlap coefficient distance matrix and the cluster membership of gene sets to be plotted
-#' @param scores How should points be sized on the scatterplot? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
+#' @param scores How should sections be sized on the treemap? Options are "pvalue" and "size". Pvalue will scale points according to -log10(pvalue), size will scale points according to gene set size K
 #'
 #' @return a ggplot object(for one-part enrichments like hypergeometric) or a list of ggplot objects (for two-part like GSEA)
 #' @export
 #'
 #' @examples
-#' # Run enrichment using SEARchways
+#' #' # Run enrichment using SEARchways
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
 #'                    ID = "ENSEMBL",
@@ -41,9 +41,20 @@ clusterTreemap <- function(
       df$score <- -log10(df$pval)
       scr_str <- "-log10(p-value)"
     } else if(scores == "size"){
-      df$score <- df$K
-      scr_str <- "Gene Set Size"
+      if(!is.null(df$K)){
+        df$score <- df$K
+        scr_str <- "Gene Set Size"
+      } else if(!is.null(df$size_pathway)){
+        df$score <- df$size_pathway
+        scr_str <- "Gene Set Size"
+      } else{
+        df$score <- 1
+        print("No valid gene set size columns provided. Please make sure input data has size_pathway or K, or else provide p-values to size points")
+        scr_str <- "Gene Set"
+      }
     }
+    
+    
     
     cl_df <- cluster_result$cluster_membership
     df <- df %>% 
@@ -76,8 +87,8 @@ clusterTreemap <- function(
     return(p)
   } 
   # gsea - list of 2 plots
-  else{
-    # if there is a sign column, result is from GSEA and clustering is sign-separated
+  else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
+
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
       df <- cluster_result$input_df

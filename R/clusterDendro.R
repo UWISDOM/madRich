@@ -1,3 +1,4 @@
+# clusterDendro
 #' Plot dendrogram of clustered gene sets
 #'
 #' @param cluster_result output from clusterSets()
@@ -6,13 +7,13 @@
 #' @export
 #'
 #' @examples
-#' # Run enrichment using SEARchways
+#' #' # Run enrichment using SEARchways
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
 #'                    ID = "ENSEMBL",
@@ -87,10 +88,8 @@ clusterDendro <- function(
           axis.ticks = ggplot2::element_blank()) 
 
   return(p)
-  } else{
-    # if there is a sign column, result is from GSEA and clustering is sign-separated
+  } else{ # if there is a sign column, result is from GSEA and clustering is sign-separated
     
-
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
 
@@ -170,6 +169,5 @@ clusterDendro <- function(
      
     }
     return(figlist)
-    
-    
-}}
+  }
+  }

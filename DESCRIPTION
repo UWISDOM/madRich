@@ -21,6 +21,7 @@ Imports:
     ggrepel,
     ggwordcloud,
     msigdbr,
+    msigdbdf,
     patchwork,
     scales,
     scico,
@@ -29,7 +30,6 @@ Imports:
     tidyr,
     treemapify,
     umap
-biocViews: 
-Remotes: BIGslu/SEARchways
+biocViews:
 Suggests: 
     SEARchways

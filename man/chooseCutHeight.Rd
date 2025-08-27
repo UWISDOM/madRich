@@ -13,7 +13,6 @@ chooseCutHeight(
   ID = "SYMBOL",
   species = "Homo sapiens",
   hclust_heights = c(0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-  kmax = NULL,
   fdr_cutoff = NULL,
   abs_NES_cutoff = NULL,
   kK_cutoff = NULL,
@@ -21,7 +20,7 @@ chooseCutHeight(
 )
 }
 \arguments{
-\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pval"), gene set collections ("gs_cat"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
+\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pval"), gene set collections ("gs_collection"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
 
 \item{enrich_method}{"hypergeometric" or "gsea." Serves as a sanity check for df filtering}
 
@@ -36,8 +35,6 @@ chooseCutHeight(
 \item{species}{"Homo sapiens" for human or "Mus musculus" for mouse}
 
 \item{hclust_heights}{vector of heights to test  for cuttree. Values must be between 0 and 1}
-
-\item{kmax}{max number of clusters to assess for silhouette plot}
 
 \item{fdr_cutoff}{optional, FDR filter to apply to df before testing clustering solutions}
 
@@ -58,9 +55,9 @@ Plots to help guide choice of cut height for hierarchical clustering of gene set
 gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                             collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+                             category="C5", subcategory="GO:MF", ID="ENSEMBL")
 df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                              collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+                              category="C5", subcategory="GO:BP", ID="ENSEMBL")
 df <- dplyr::bind_rows(df1, df2)
 
 chooseCutHeight(df = df, enrich_method="hypergeometric",
