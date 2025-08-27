@@ -21,7 +21,6 @@ Imports:
     ggrepel,
     ggwordcloud,
     msigdbr,
-    msigdbdf,
     patchwork,
     scales,
     scico,
