@@ -192,7 +192,7 @@ clusterSets <- function(
   db_format <- db_format %>% 
     dplyr::select(c("sign", "pathway", "gene", "gs_description")) %>% 
     dplyr::distinct()
-  final[["datbase_format"]] <- db_format
+  final[["database_format"]] <- db_format
   
   
   ### make distance matrix ###

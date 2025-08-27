@@ -100,7 +100,7 @@ clusterWordclouds <- function(
     cl_df <- cluster_result$cluster_membership
     
     df2 <- df %>%
-      dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
+      dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
                        by = dplyr::join_by(pathway)) %>%  # grab gene set 
       dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
     
@@ -228,7 +228,7 @@ clusterWordclouds <- function(
         dplyr::filter(pathway %in% cl_df$pathway)
       
       df2 <- df %>%
-        dplyr::left_join(cluster_result$datbase_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
+        dplyr::left_join(cluster_result$database_format %>% dplyr::select(c(pathway, gs_description)) %>% dplyr::distinct(),
                          by = dplyr::join_by(pathway)) %>%  # grab gene set 
         dplyr::left_join(cl_df, by = c("pathway" = "pathway"))
       

@@ -188,7 +188,7 @@ if(!is.null(subcategories) & is.null(names(subcategories))){stop("subcategories 
     dplyr::distinct()
   
   final <- list()
-  final[["datbase_format"]] <- db_format
+  final[["database_format"]] <- db_format
 
   ### make distance matrix ###
   
