@@ -22,9 +22,9 @@ Create treemap plot(s) of clustered enrichment result
 gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                             category="C5", subcategory="GO:MF", ID="ENSEMBL")
+                             collection="C5", subcollection="GO:MF", ID="ENSEMBL")
 df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-                              category="C5", subcategory="GO:BP", ID="ENSEMBL")
+                              collection="C5", subcollection="GO:BP", ID="ENSEMBL")
 df <- dplyr::bind_rows(df1, df2)
 res <- clusterSets(df = df, enrich_method="hypergeometric",
                    ID = "ENSEMBL",
