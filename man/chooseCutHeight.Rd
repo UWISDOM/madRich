@@ -2,16 +2,16 @@
 % Please edit documentation in R/chooseCutHeight.R
 \name{chooseCutHeight}
 \alias{chooseCutHeight}
-\title{Plots to help guide choice of cut height for heirarchical clustering of gene sets}
+\title{Plots to help guide choice of cut height for hierarchical clustering of gene sets}
 \usage{
 chooseCutHeight(
   df = NULL,
   enrich_method = "hypergeometric",
-  categories = NULL,
-  subcategories = NULL,
+  collections = NULL,
+  subcollections = NULL,
   db = NULL,
   ID = "SYMBOL",
-  species = "human",
+  species = "Homo sapiens",
   hclust_heights = c(0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
   kmax = NULL,
   fdr_cutoff = NULL,
@@ -21,19 +21,19 @@ chooseCutHeight(
 )
 }
 \arguments{
-\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pvalue"), gene set categories ("gs_cat"), and gene set subcategories where applicable ("gs_subcat"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
+\item{df}{result of enrichment function. Should contain a column of pathway names ("pathway"), p-values ("pval"), gene set collections ("gs_cat"), and gene set subcollections where applicable ("gs_subcollection"). If filtering by FDR, k/K, or NES, these values must be included as "FDR", "k/K", or "NES", respectively.}
 
 \item{enrich_method}{"hypergeometric" or "gsea." Serves as a sanity check for df filtering}
 
-\item{categories}{a vector of Broad gene set categories included among the pathway names in df}
+\item{collections}{a vector of Broad gene set collections included among the pathway names in df}
 
-\item{subcategories}{a named vector of Broad gene set subcategories (names are corresponding cats provided in 'categories')}
+\item{subcollections}{a named vector of Broad gene set subcollections (names are corresponding cats provided in 'collections')}
 
 \item{db}{optional, custom gene set database formatted like MSigDB}
 
 \item{ID}{"SYMBOL", "ENSEMBL", or "ENTREZ". What format of gene ID do you want to use for clustering.}
 
-\item{species}{"human" or "mouse" for msigDB}
+\item{species}{"Homo sapiens" for human or "Mus musculus" for mouse}
 
 \item{hclust_heights}{vector of heights to test  for cuttree. Values must be between 0 and 1}
 
@@ -51,38 +51,23 @@ chooseCutHeight(
 a list containing a plot(s) of silhouette scores by number of clusters, a summary dataframe, and a suggested "optimal" cut height
 }
 \description{
-Plots to help guide choice of cut height for heirarchical clustering of gene sets
+Plots to help guide choice of cut height for hierarchical clustering of gene sets
 }
 \examples{
-# Run GSEA using SEARchways
-gene_list <- SEARchways::example.gene.list
-df1 <- SEARchways::BIGsea(gene_list=gene_list, 
-             category="C2", subcategory="CP", ID="ENSEMBL")
-df2 <- SEARchways::BIGsea(gene_list=gene_list, 
-             category="C5", subcategory="GO:BP", ID="ENSEMBL")
-df <- dplyr::bind_rows(df1, df2)
-
-chooseCutHeight(df = df, enrich_method="gsea",
-                ID = "ENSEMBL",
-                categories = c("C2", "C5"),
-                subcategories = c("C2" = "CP", "C5" = "GO:BP"),
-                hclust_heights = c(0.3,0.5,0.7),
-                group_name = "HRV1")
-
 # Run enrichment using SEARchways
 gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-             category="C5", subcategory="GO:MF", ID="ENSEMBL")
+                             collection="C5", subcollection="GO:MF", ID="ENSEMBL")
 df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-             category="C5", subcategory="GO:BP", ID="ENSEMBL")
+                              collection="C5", subcollection="GO:BP", ID="ENSEMBL")
 df <- dplyr::bind_rows(df1, df2)
 
 chooseCutHeight(df = df, enrich_method="hypergeometric",
-                ID = "ENSEMBL",
-                categories = c("C5"),
-                subcategories = c("C5" = "GO:MF", "C5" = "GO:BP"),
-                hclust_heights = c(0.3,0.5,0.7),
-                group_name = "HRV1",
-                fdr_cutoff = 0.3)
+               ID = "ENSEMBL",
+               collections = c("C5"),
+               subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+               hclust_heights = c(0.3,0.5,0.7),
+               group_name = "HRV1",
+               fdr_cutoff = 0.4)
 }

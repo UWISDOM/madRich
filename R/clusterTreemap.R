@@ -7,9 +7,22 @@
 #' @export
 #'
 #' @examples
-#' # Not run
-#' # Create res object as described in clusterSets example
-#' # clusterTreemap(res)
+#' # Run enrichment using SEARchways
+#' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+#'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
+#' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' res <- clusterSets(df = df, enrich_method="hypergeometric",
+#'                    ID = "ENSEMBL",
+#'                    collections = c("C5"),
+#'                    subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+#'                    hclust_height = c(0.7),
+#'                    group_name = "HRV1",
+#'                    fdr_cutoff = 0.4)
+#' clusterTreemap(res)
 
 clusterTreemap <- function(
     cluster_result = NULL,
@@ -20,7 +33,7 @@ clusterTreemap <- function(
   set.seed(432143)
   
   # hypergeometric - one plot
-  if(is.null(cluster_result$cluster_membership$sign)){
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
     df <- cluster_result$input_df
     
     ## format inputs ##
@@ -64,7 +77,7 @@ clusterTreemap <- function(
   } 
   # gsea - list of 2 plots
   else{
-
+    # if there is a sign column, result is from GSEA and clustering is sign-separated
     figlist <- list()
     for(s in unique(cluster_result$cluster_membership$sign)){
       df <- cluster_result$input_df

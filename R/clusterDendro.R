@@ -6,9 +6,22 @@
 #' @export
 #'
 #' @examples
-#' # Not run
-#' # Create res object as described in clusterSets example
-#' # clusterDendro(res)
+#' # Run enrichment using SEARchways
+#' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
+#'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
+#' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
+#' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
+#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
+#' df <- dplyr::bind_rows(df1, df2)
+#' res <- clusterSets(df = df, enrich_method="hypergeometric",
+#'                    ID = "ENSEMBL",
+#'                    collections = c("C5"),
+#'                    subcollections = c("C5" = "GO:MF", "C5" = "GO:BP"),
+#'                    hclust_height = c(0.7),
+#'                    group_name = "HRV1",
+#'                    fdr_cutoff = 0.4)
+#' clusterDendro(res)
 
 clusterDendro <- function(
     cluster_result = NULL
@@ -16,7 +29,7 @@ clusterDendro <- function(
   . <- pathway <- label <- cluster <- x <- xend <- y <- yend <- NULL
   set.seed(432143)
   
-  if(is.null(cluster_result$cluster_membership$sign)){
+  if(is.null(cluster_result$cluster_membership$sign)){ # if there is no sign column, result is from hypergeometric there is one cluster input
 
   dm <- cluster_result$dist_mat
   rownames(dm) <- stringr::str_replace_all(rownames(dm), "_", " ")
@@ -75,6 +88,7 @@ clusterDendro <- function(
 
   return(p)
   } else{
+    # if there is a sign column, result is from GSEA and clustering is sign-separated
     
 
     figlist <- list()
