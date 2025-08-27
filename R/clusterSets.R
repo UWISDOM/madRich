@@ -21,9 +21,9 @@
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
+#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' 
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
@@ -93,11 +93,18 @@ clusterSets <- function(
   } else{stop("Options for enrichment method are 'hypergeometric' and 'gsea'.")}
  
   if(is.null(db)){ # if database is not provided
-    msigdbdf::msigdbdf("HS")
+    if (species %in% c("human","Homo sapiens")) {
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if (species %in% c("mouse","Mus musculus")) {
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
     db_list <- list()
     
     for(cat in collections){
-      database <- msigdbr::msigdbr(species = species, collection = cat) # get msigdb reference
+      database <- msigdbr::msigdbr(db_species = db_species, species = species, collection = cat) # get msigdb reference
       # Fix C2 subcat names
       if(cat == "C2"){
       database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc
@@ -195,6 +202,7 @@ clusterSets <- function(
       olmd <- 1-olm # convert similarity matrix to distance matrix
       
       ### make clusters ###
+      if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
       cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
       
       if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}
@@ -235,6 +243,7 @@ clusterSets <- function(
     olmd <- 1-olm # convert similarity matrix to distance matrix
     
     ### make clusters ###
+    if(nrow(olmd)<=1){stop("Too few gene sets or no overlapping genes found across gene sets. Consider relaxing cutoffs to obtain more gene sets for clustering.")}
     cl <- stats::hclust(d = stats::as.dist(olmd), method = "average")
     
     if(hclust_height > 1 | hclust_height < 0){stop("'hclust_height' must be between 0 and 1.")}

@@ -11,9 +11,9 @@
 #' gene_list2 <- list(HRV1 = names(SEARchways::example.gene.list[[1]]),
 #'                   HRV2 = names(SEARchways::example.gene.list[[2]]))
 #' df1 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                              category="C5", subcategory="GO:MF", ID="ENSEMBL")
+#'                              collection="C5", subcollection="GO:MF", ID="ENSEMBL")
 #' df2 <- SEARchways::BIGprofiler(gene_list=gene_list2, 
-#'                               category="C5", subcategory="GO:BP", ID="ENSEMBL")
+#'                               collection="C5", subcollection="GO:BP", ID="ENSEMBL")
 #' df <- dplyr::bind_rows(df1, df2)
 #' res <- clusterSets(df = df, enrich_method="hypergeometric",
 #'                    ID = "ENSEMBL",
@@ -56,7 +56,8 @@ clusterDendro <- function(
   label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
 
   dgdata <- ggdendro::segment(ddata) %>% 
-    dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+    dplyr::left_join(dplyr::select(label_data, c(x, cluster)),
+                     by = dplyr::join_by(x)) %>% 
     dplyr::mutate(lwd = NA)
   
     for(i in unique(jdf$cluster)){
@@ -126,7 +127,8 @@ clusterDendro <- function(
      label_data <- dplyr::bind_cols(dplyr::filter(ggdendro::segment(ddata), x == xend & x%%1 == 0 & yend == 0), "label" = ddata$labels$label, "cluster" = ddata$labels$cluster) 
      
      dgdata <- ggdendro::segment(ddata) %>% 
-       dplyr::left_join(dplyr::select(label_data, c(x, cluster))) %>% 
+       dplyr::left_join(dplyr::select(label_data, c(x, cluster)),
+                        by = dplyr::join_by(x)) %>% 
        dplyr::mutate(lwd = NA)
      
      for(i in unique(jdf$cluster)){
