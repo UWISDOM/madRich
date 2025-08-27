@@ -93,11 +93,18 @@ clusterSets <- function(
   } else{stop("Options for enrichment method are 'hypergeometric' and 'gsea'.")}
  
   if(is.null(db)){ # if database is not provided
-    msigdbdf::msigdbdf("HS")
+    if (species %in% c("human","Homo sapiens")) {
+      species <- "Homo sapiens"
+      db_species <- "HS"
+    }
+    if (species %in% c("mouse","Mus musculus")) {
+      species <- "Mus musculus"
+      db_species <- "MM"
+    }
     db_list <- list()
     
     for(cat in collections){
-      database <- msigdbr::msigdbr(species = species, collection = cat) # get msigdb reference
+      database <- msigdbr::msigdbr(species = db_species, collection = cat) # get msigdb reference
       # Fix C2 subcat names
       if(cat == "C2"){
       database <- database %>% # subcollections in C2 is formatted bad. separate "CP" from "KEGG", etc
